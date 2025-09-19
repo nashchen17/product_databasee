@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FS客戶產品管理系統</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>FS客戶產品管理系統</h1>
+        
+        <!-- Excel檔案上傳區域 -->
+        <section class="upload-section">
+            <h2>匯入產品清單</h2>
+            <div class="upload-container">
+                <!-- 左側：上傳區域 -->
+                <div class="upload-area">
+                    <input type="file" id="excelFile" accept=".xlsx,.xls" />
+                    <label for="excelFile" class="upload-label">
+                        選擇Excel檔案或拖拽到此處
+                    </label>
+                    <p class="upload-hint">支援 .xlsx 和 .xls 格式</p>
+                    <div id="uploadedFileName" class="uploaded-file-name" style="display: none;">
+                        <span class="file-icon">📄</span>
+                        <span class="file-name"></span>
+                        <button type="button" class="remove-file-btn" title="移除檔案">×</button>
+                    </div>
+                </div>
+
+                <!-- 右側：控制面板 -->
+                <div class="control-panel">
+                    <!-- 手動新增產品區域 -->
+                    <div class="manual-entry">
+                        <h3>手動新增料號</h3>
+                        <div class="add-product-form">
+                            <input type="text" id="newProductName" placeholder="輸入料號" />
+                            <button id="addProductBtn">新增料號</button>
+                        </div>
+                    </div>
+
+                    <!-- 產品系列選擇區域 -->
+                    <div class="series-selection">
+                        <h3>產品系列篩選</h3>
+                        <div class="series-filter">
+                            <select id="seriesSelect">
+                                <option value="all">顯示全部產品</option>
+                                <option value="600">600系列</option>
+                                <option value="4022">4022系列</option>
+                                <option value="DZ">DZ系列</option>
+                                <option value="其他配件">其他配件</option>
+                                <option value="other">未分類</option>
+                            </select>
+                            <button id="clearFilterBtn">清除篩選</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 產品價格和庫存輸入區域 -->
+        <section class="price-input-section">
+            <h2>料號單價與庫存設定</h2>
+            <div id="productList" class="product-list">
+                <!-- 動態生成的產品項目將顯示在這裡 -->
+            </div>
+            <button id="saveAllData" class="save-btn">儲存所有資料</button>
+        </section>
+
+        <!-- 結果顯示區域 -->
+        <section class="results-section">
+            <h2>已設定的料號資料</h2>
+            <div id="savedProducts" class="saved-products">
+                <!-- 已儲存的產品價格和庫存將顯示在這裡 -->
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="ProductPriceManager.js"></script>
+    <script>
+        // 初始化產品價格管理系統
+        document.addEventListener('DOMContentLoaded', function() {
+            window.productManager = new ProductPriceManager();
+            console.log('FS客戶產品管理系統已初始化');
+        });
+    </script>
+</body>
+</html>
