@@ -1,3 +1,30 @@
+/* 儲存庫存表格欄寬優化 */
+.saved-products-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+.saved-products-table th, .saved-products-table td {
+    padding: 50px 16px;
+    border: 10px solid #bfc9d1;
+    text-align: center;
+    word-break: normal;
+    writing-mode: horizontal-tb;
+    white-space: nowrap;
+}
+.saved-products-table th {
+    background: #eaf3fa;
+    font-size: 16px;
+}
+.saved-products-table td {
+    font-size: 15px;
+}
+/* 指定每一欄的最小寬度，避免擁擠 */
+.saved-products-table th:nth-child(1), .saved-products-table td:nth-child(1) { min-width: 250px; }
+.saved-products-table th:nth-child(2), .saved-products-table td:nth-child(2) { min-width: 300px; }
+.saved-products-table th:nth-child(3), .saved-products-table td:nth-child(3) { min-width: 500px; }
+.saved-products-table th:nth-child(4), .saved-products-table td:nth-child(4) { min-width: 600px; }
+.saved-products-table th:nth-child(5), .saved-products-table td:nth-child(5) { min-width: 150px; }
 * {
     box-sizing: border-box;
     margin: 0;
@@ -11,7 +38,7 @@ body {
 }
 
 .container {
-    max-width: 1400px;
+    max-width: 1800px;
     margin: 0 auto;
     padding: 20px;
     width: 100%;
@@ -400,9 +427,9 @@ section {
 
 /* 左側系列資訊區域 - 縮小寬度 */
 .series-info-section {
-    width: 180px;
+    width: 100px;
     flex-shrink: 0;
-    padding: 15px;
+    padding: 12px;
     background-color: #f8f9fa;
     border-radius: 8px;
     border-left: 4px solid #3498db;
@@ -421,32 +448,36 @@ section {
 /* 產品輸入網格 - 一列四個 */
 .product-input-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
     width: 100%;
-    max-width: 1200px;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 10px;
 }
 
 /* 產品輸入卡片 */
 .product-input-card {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
     padding: 16px;
     background-color: #ffffff;
     transition: all 0.3s ease;
-    min-height: 160px;
+    min-height: 180px;
     display: flex;
     flex-direction: column;
-    width: 280px;
+    width: 100%;
     box-sizing: border-box;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    position: relative;
 }
 
 .product-input-card:hover {
     background-color: #f8f9fa;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
     border-color: #3498db;
+    border-width: 2px;
 }
 
 /* 產品資訊區域 */
@@ -457,8 +488,8 @@ section {
 }
 
 .product-code-name {
-    font-weight: 600;
-    font-size: 13px;
+    font-weight: 700;
+    font-size: 14px;
     color: #2c3e50;
     word-break: keep-all;
     line-height: 1.4;
@@ -466,12 +497,14 @@ section {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: 4px 0;
-    background-color: #f8f9fa;
-    border-radius: 4px;
-    padding: 6px 8px;
-    margin-bottom: 4px;
-    border-left: 3px solid #3498db;
+    padding: 6px 10px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 6px;
+    margin-bottom: 6px;
+    border-left: 4px solid #3498db;
+    border-right: 1px solid #dee2e6;
+    border-top: 1px solid #dee2e6;
+    border-bottom: 1px solid #dee2e6;
 }
 
 .product-code {
@@ -722,21 +755,31 @@ section {
     }
 }
 
+/* 大螢幕版響應式設計 */
+@media (min-width: 1401px) {
+    .product-input-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+    }
+}
+
+/* 中大型螢幕響應式設計 */
+@media (max-width: 1400px) and (min-width: 1025px) {
+    .product-input-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+    }
+}
+
 /* 平板版響應式設計 */
 @media (max-width: 1024px) and (min-width: 769px) {
     .product-input-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        gap: 16px;
     }
 }
 
 /* 小平板版響應式設計 */
-@media (max-width: 1200px) and (min-width: 1025px) {
-    .product-input-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-    }
-}
 
 .product-list {
     display: grid;

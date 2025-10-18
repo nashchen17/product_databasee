@@ -6,7 +6,58 @@ class ProductPriceManager {
         this.productPrices = new Map();
         this.productInventory = new Map(); // 新增庫存管理
         this.currentFilter = 'all'; // 當前篩選條件
+        
+        // 添加示例產品以展示三列佈局
+        this.addSampleProducts();
+        
         this.initializeEventListeners();
+        
+        // 初始化時渲染示例產品
+        setTimeout(() => {
+            this.renderProductList();
+            this.updateSeriesOptions();
+        }, 100);
+        // 匯出庫存表按鈕事件
+        setTimeout(() => {
+            const exportBtn = document.getElementById('exportInventoryBtn');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', () => {
+                    this.exportInventoryTable();
+                });
+            }
+        }, 200);
+    }
+
+    addSampleProducts() {
+        // 添加示例產品數據
+        const sampleProducts = [
+            { code: '231774', name: '登遠鏡', version: '', series: '600系列' },
+            { code: '251140', name: '小滑片', version: 'A', series: '600系列' },
+            { code: '262350', name: '連接器', version: 'B', series: '600系列' },
+            { code: '402250', name: '感應器', version: 'C', series: '4022系列' }
+        ];
+
+        sampleProducts.forEach(product => {
+            this.products.set(product.code, product.name);
+            if (product.version) {
+                this.productVersions.set(product.code, product.version);
+            }
+            this.productSeries.set(product.code, product.series);
+        });
+        
+        // 清理無效的系列數據
+        this.cleanInvalidSeries();
+    }
+
+    cleanInvalidSeries() {
+        const invalidSeries = ['系列', '料號', '版本', '中文名稱', '名稱', '庫存'];
+        for (let [productCode, series] of this.productSeries.entries()) {
+            if (invalidSeries.includes(series)) {
+                // 重新檢測系列
+                const newSeries = this.detectProductSeries(productCode, '');
+                this.productSeries.set(productCode, newSeries);
+            }
+        }
     }
 
     initializeEventListeners() {
@@ -130,7 +181,12 @@ class ProductPriceManager {
         this.products.clear();
         this.productVersions.clear();
         this.productSeries.clear();
+        
+        // 重新加載示例產品
+        this.addSampleProducts();
+        
         this.renderProductList();
+        this.updateSeriesOptions();
     }
 
     handleExcelUpload(event) {
@@ -229,8 +285,10 @@ class ProductPriceManager {
             const productName = String(row[nameCol] || '').trim();
             const inventory = inventoryCol >= 0 ? String(row[inventoryCol] || '').trim() : '';
 
-            if (productCode && productName) {
-                this.products.set(productCode, productName);
+            if (productCode) {
+                // 如果沒有中文名稱，使用料號作為名稱
+                const finalProductName = productName || productCode;
+                this.products.set(productCode, finalProductName);
                 
                 if (version) {
                     this.productVersions.set(productCode, version);
@@ -250,6 +308,16 @@ class ProductPriceManager {
 
         console.log(`從Excel讀取了 ${addedCount} 個料號`);
         
+        // 清理無效的系列數據
+        this.cleanInvalidSeries();
+        
+        // 調試：統計各系列產品數量
+        const seriesCount = {};
+        for (let [productCode, series] of this.productSeries.entries()) {
+            seriesCount[series] = (seriesCount[series] || 0) + 1;
+        }
+        console.log('各系列產品數量:', seriesCount);
+        
         if (addedCount > 0) {
             this.renderProductList();
             this.updateSeriesOptions();
@@ -260,8 +328,11 @@ class ProductPriceManager {
     }
 
     detectProductSeries(productCode, series = '') {
-        // 如果Excel中已經有系列資訊，優先使用
-        if (series && series !== '') {
+        // 過濾掉無效的系列名稱
+        const invalidSeries = ['系列', '料號', '版本', '中文名稱', '名稱', '庫存'];
+        
+        // 如果Excel中已經有系列資訊且不是無效值，優先使用
+        if (series && series !== '' && !invalidSeries.includes(series.trim())) {
             return series;
         }
 
@@ -270,10 +341,9 @@ class ProductPriceManager {
             return '600系列';
         } else if (productCode.startsWith('4022')) {
             return '4022系列';
-        } else if (productCode.startsWith('DZ')) {
+        } else if (productCode.match(/^D[0-9]?Z[A-Z]?N?\d+/)) {
+            // 匹配所有DZ系列產品: DZ, D4ZN, D5ZN, D7ZN 等格式
             return 'DZ系列';
-        } else if (/^[A-Z]{2,3}\d/.test(productCode)) {
-            return '其他配件';
         } else {
             return '未分類';
         }
@@ -283,31 +353,38 @@ class ProductPriceManager {
         const seriesSelect = document.getElementById('seriesSelect');
         if (!seriesSelect) return;
 
+        // 保存當前選中的值
+        const currentValue = seriesSelect.value;
+
+        // 完全重建選項列表
+        seriesSelect.innerHTML = `
+            <option value="all">顯示全部產品</option>
+            <option value="600">600系列</option>
+            <option value="4022">4022系列</option>
+            <option value="DZ">DZ系列</option>
+            <option value="other">未分類</option>
+        `;
+
         // 獲取所有系列
         const allSeries = new Set();
         for (let series of this.productSeries.values()) {
             allSeries.add(series);
         }
 
-        // 清除現有選項（保留預設選項）
-        const defaultOptions = ['all', '600', '4022', 'DZ', '其他配件', 'other'];
-        const optionsToRemove = [];
-        for (let option of seriesSelect.options) {
-            if (!defaultOptions.includes(option.value)) {
-                optionsToRemove.push(option);
-            }
-        }
-        optionsToRemove.forEach(option => option.remove());
-
-        // 添加檢測到的新系列
+        // 添加檢測到的新系列（避免重複預設系列）
+        const defaultSeries = ['600系列', '4022系列', 'DZ系列', '未分類'];
+        const invalidSeries = ['系列', '料號', '版本', '中文名稱', '名稱']; // 過濾掉無效的系列名稱
         allSeries.forEach(series => {
-            if (!defaultOptions.includes(series) && series !== '未分類') {
+            if (!defaultSeries.includes(series) && !invalidSeries.includes(series) && series.trim() !== '') {
                 const option = document.createElement('option');
                 option.value = series;
                 option.textContent = series;
                 seriesSelect.appendChild(option);
             }
         });
+
+        // 恢復之前選中的值
+        seriesSelect.value = currentValue;
     }
 
     addManualProduct() {
@@ -395,7 +472,6 @@ class ProductPriceManager {
             case '600': return '600系列產品';
             case '4022': return '4022系列產品';
             case 'DZ': return 'DZ系列產品';
-            case '其他配件': return '其他配件';
             case 'other': return '未分類產品';
             default: return `${filterValue}產品`;
         }
@@ -417,8 +493,6 @@ class ProductPriceManager {
             } else if (this.currentFilter === '4022' && series === '4022系列') {
                 shouldInclude = true;
             } else if (this.currentFilter === 'DZ' && series === 'DZ系列') {
-                shouldInclude = true;
-            } else if (this.currentFilter === '其他配件' && series === '其他配件') {
                 shouldInclude = true;
             } else if (this.currentFilter === 'other' && series === '未分類') {
                 shouldInclude = true;
@@ -443,7 +517,6 @@ class ProductPriceManager {
         
         productArray.forEach(([productCode, productName]) => {
             const productVersion = this.productVersions.get(productCode) || '';
-            const currentPrice = this.productPrices.get(productCode) || '';
             const currentInventory = this.productInventory.get(productCode) || '';
             
             const productItem = document.createElement('div');
@@ -455,18 +528,6 @@ class ProductPriceManager {
                     ${productVersion ? `<div class="product-version">${productVersion}</div>` : ''}
                 </div>
                 <div class="input-group">
-                    <div class="input-field">
-                        <label>單價</label>
-                        <input 
-                            type="number" 
-                            class="price-input" 
-                            placeholder="輸入單價" 
-                            value="${currentPrice}"
-                            data-product="${productCode}"
-                            step="1"
-                            min="0"
-                        />
-                    </div>
                     <div class="input-field">
                         <label>庫存</label>
                         <input 
@@ -486,14 +547,7 @@ class ProductPriceManager {
             
             // 為輸入框添加事件監聽器
             setTimeout(() => {
-                const priceInput = productItem.querySelector('.price-input');
                 const inventoryInput = productItem.querySelector('.inventory-input');
-                
-                if (priceInput) {
-                    priceInput.addEventListener('input', (e) => {
-                        this.productPrices.set(productCode, e.target.value);
-                    });
-                }
                 
                 if (inventoryInput) {
                     inventoryInput.addEventListener('input', (e) => {
@@ -510,18 +564,16 @@ class ProductPriceManager {
         const savedData = [];
         
         for (let [productCode, productName] of this.products.entries()) {
-            const price = this.productPrices.get(productCode) || '';
             const inventory = this.productInventory.get(productCode) || '';
             const version = this.productVersions.get(productCode) || '';
             const series = this.productSeries.get(productCode) || '';
             
-            if (price || inventory) {
+            if (inventory) {
                 savedData.push({
                     productCode,
                     productName,
                     version,
                     series,
-                    price,
                     inventory
                 });
             }
@@ -560,8 +612,7 @@ class ProductPriceManager {
                     <th>系列</th>
                     <th>料號</th>
                     <th>版本</th>
-                    <th>產品名稱</th>
-                    <th>單價</th>
+                    <th>中文識別</th>
                     <th>庫存</th>
                 </tr>
             </thead>
@@ -572,7 +623,6 @@ class ProductPriceManager {
                         <td>${item.productCode}</td>
                         <td>${item.version}</td>
                         <td>${item.productName}</td>
-                        <td>${item.price ? `$${item.price}` : '-'}</td>
                         <td>${item.inventory || '-'}</td>
                     </tr>
                 `).join('')}
@@ -580,5 +630,20 @@ class ProductPriceManager {
         `;
         
         savedProductsContainer.appendChild(table);
+    }
+
+    exportInventoryTable() {
+        // 匯出已儲存的產品資料為 Excel（直向格式）
+        const savedProductsContainer = document.getElementById('savedProducts');
+        const table = savedProductsContainer.querySelector('table');
+        if (!table) {
+            alert('沒有可匯出的庫存資料，請先儲存資料');
+            return;
+        }
+        // 將 table DOM 轉成 worksheet
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.table_to_sheet(table);
+        XLSX.utils.book_append_sheet(wb, ws, '庫存表');
+        XLSX.writeFile(wb, '庫存表.xlsx');
     }
 }

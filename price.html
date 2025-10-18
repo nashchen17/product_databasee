@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FS客戶產品管理系統</title>
+    <title>FS產品庫存輸入系統</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>FS客戶產品管理系統</h1>
+        <h1>FS產品庫存輸入系統</h1>
         
         <!-- Excel檔案上傳區域 -->
         <section class="upload-section">
@@ -48,7 +48,6 @@
                                 <option value="600">600系列</option>
                                 <option value="4022">4022系列</option>
                                 <option value="DZ">DZ系列</option>
-                                <option value="其他配件">其他配件</option>
                                 <option value="other">未分類</option>
                             </select>
                             <button id="clearFilterBtn">清除篩選</button>
@@ -58,9 +57,9 @@
             </div>
         </section>
 
-        <!-- 產品價格和庫存輸入區域 -->
+        <!-- 產品庫存輸入區域 -->
         <section class="price-input-section">
-            <h2>料號單價與庫存設定</h2>
+            <h2>料號庫存設定</h2>
             <div id="productList" class="product-list">
                 <!-- 動態生成的產品項目將顯示在這裡 -->
             </div>
@@ -70,6 +69,7 @@
         <!-- 結果顯示區域 -->
         <section class="results-section">
             <h2>已設定的料號資料</h2>
+            <button id="exportInventoryBtn" class="export-btn">匯出庫存表</button>
             <div id="savedProducts" class="saved-products">
                 <!-- 已儲存的產品價格和庫存將顯示在這裡 -->
             </div>
@@ -82,7 +82,7 @@
         // 初始化產品價格管理系統
         document.addEventListener('DOMContentLoaded', function() {
             window.productManager = new ProductPriceManager();
-            console.log('FS客戶產品管理系統已初始化');
+            console.log('FS產品庫存輸入系統已初始化');
         });
     </script>
 </body>
